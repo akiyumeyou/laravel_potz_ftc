@@ -5,84 +5,105 @@ namespace App\Http\Controllers;
 use App\Models\Tweet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class TweetController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $messages = Tweet::all();
         return view('tweet.index', compact('messages'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('tweet.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
-            'content' => 'required',
+            'content' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        Tweet::create([
-            'user_id' => Auth::id(),
-            'user_name' => Auth::user()->name,
-            'content' => $request->input('content'),
-            'message_type' => 'text'
-        ]);
+        $tweet = new Tweet();
+        $tweet->user_id = auth()->id();
+        $tweet->user_name = auth()->user()->name;
+        $tweet->updated_at = now();
+        $tweet->created_at = now();
 
-        return redirect()->route('tweets.index');
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('images', 'public');
+            $tweet->content = '/storage/' . $imagePath;
+            $tweet->message_type = 'image';
+        } else {
+            $tweet->content = $request->input('content');
+            $tweet->message_type = 'text';
+        }
+
+        $tweet->save();
+
+        return redirect()->route('tweets.index')->with('success', 'Tweet created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Tweet $tweet)
     {
         return view('tweet.show', compact('tweet'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Tweet $tweet)
     {
         return view('tweet.edit', compact('tweet'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Tweet $tweet)
     {
         $request->validate([
-            'content' => 'required',
+            'content' => 'required_without_all:image,video,link',
+            'image' => 'nullable|image|max:10240',
+            'video' => 'nullable|mimetypes:video/mp4,video/quicktime|max:20480',
+            'link' => 'nullable|url'
         ]);
+
+        $messageType = 'text';
+        $content = $request->input('content');
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('images', 'public');
+            $content = Storage::url($path);
+            $messageType = 'image';
+        }
+
+        if ($request->hasFile('video')) {
+            $path = $request->file('video')->store('videos', 'public');
+            $content = Storage::url($path);
+            $messageType = 'video';
+        }
+
+        if ($request->input('link')) {
+            $content = $request->input('link');
+            $messageType = 'link';
+        }
 
         $tweet->update([
-            'content' => $request->input('content'),
+            'content' => $content,
+            'message_type' => $messageType,
         ]);
 
-        return redirect()->route('tweets.index');
+        return redirect()->route('tweets.index')->with('success', 'Message updated successfully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Tweet $tweet)
     {
+        // 画像が存在する場合はストレージから削除
+        if ($tweet->message_type == 'image') {
+            $imagePath = str_replace('/storage/', '', $tweet->content);
+            Storage::disk('public')->delete($imagePath);
+        }
+
         $tweet->delete();
 
-        return redirect()->route('tweets.index');
+        return redirect()->route('tweets.index')->with('success', 'Message deleted successfully');
     }
 }

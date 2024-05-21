@@ -21,3 +21,7 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::resource('tweets', TweetController::class);
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('tweets', TweetController::class);
+});

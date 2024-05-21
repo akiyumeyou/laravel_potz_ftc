@@ -1,31 +1,22 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class ModifyMessageTypeInTweetsTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::create('tweets', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('user_name');
-            $table->text('content');
-            $table->enum('message_type', ['text', 'stamp']);
-            $table->timestamps();
+        Schema::table('tweets', function (Blueprint $table) {
+            $table->enum('message_type', ['text', 'image', 'video', 'link'])->change();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('tweets');
+        Schema::table('tweets', function (Blueprint $table) {
+            $table->string('message_type')->change();
+        });
     }
-};
+}
+
