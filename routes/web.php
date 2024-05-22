@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TweetController;
+use App\Http\Controllers\AudioController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,3 +36,6 @@ Route::resource('tweets', TweetController::class);
 Route::middleware(['auth'])->group(function () {
     Route::resource('tweets', TweetController::class);
 });
+
+Route::post('/transcribe', [TweetController::class, 'transcribe'])->name('transcribe');
+

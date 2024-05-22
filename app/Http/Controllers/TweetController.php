@@ -6,6 +6,8 @@ use App\Models\Tweet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log; // Logファサードをインポート
+use GuzzleHttp\Client;
 
 class TweetController extends Controller
 {
@@ -25,6 +27,7 @@ class TweetController extends Controller
         $request->validate([
             'content' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'audio' => 'nullable|mimes:mp3,mp4,mpeg,mpga,m4a,wav,webm|max:25000', // 最大25MB
         ]);
 
         $tweet = new Tweet();
@@ -46,6 +49,79 @@ class TweetController extends Controller
 
         return redirect()->route('tweets.index')->with('success', 'Tweet created successfully.');
     }
+
+    public function transcribe(Request $request)
+    {
+        try {
+            $request->validate([
+                'audio' => 'required|mimes:mp3,mp4,mpeg,mpga,m4a,wav,webm|max:25000', // 最大25MB
+            ]);
+    
+            $audio = $request->file('audio');
+            $client = new Client();
+            $apiKey = env('OPENAI_API_KEY');
+    
+            if (!$apiKey) {
+                throw new \Exception('API key is missing.');
+            }
+    
+            $audioPath = $audio->getPathname();
+            $audioName = $audio->getClientOriginalName();
+    
+            Log::info('Audio path: ' . $audioPath);
+            Log::info('Audio name: ' . $audioName);
+            Log::info('API Key: ' . $apiKey);
+    
+            // ファイルの内容を取得して変数に格納
+            $fileContents = file_get_contents($audioPath);
+            if ($fileContents === false) {
+                throw new \Exception('Failed to read audio file');
+            }
+    
+            $response = $client->post('https://api.openai.com/v1/audio/transcriptions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                ],
+                'multipart' => [
+                    [
+                        'name'     => 'file',
+                        'contents' => $fileContents,
+                        'filename' => $audioName,
+                    ],
+                    [
+                        'name'     => 'model',
+                        'contents' => 'whisper-1',
+                    ],
+                ],
+            ]);
+    
+            $statusCode = $response->getStatusCode();
+            $responseBody = $response->getBody()->getContents();
+    
+            Log::info('Response status: ' . $statusCode);
+            Log::info('Response body: ' . $responseBody);
+    
+            if ($statusCode !== 200) {
+                throw new \Exception('API request failed with status code ' . $statusCode);
+            }
+    
+            $data = json_decode($responseBody, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('JSON decode error: ' . json_last_error_msg());
+            }
+    
+            return response()->json([
+                'transcription' => $data['text'] ?? null,
+            ]);
+    
+        } catch (\Exception $e) {
+            Log::error('Transcription error: ' . $e->getMessage());
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
 
     public function show(Tweet $tweet)
     {
@@ -93,6 +169,7 @@ class TweetController extends Controller
 
         return redirect()->route('tweets.index')->with('success', 'Message updated successfully');
     }
+
 
     public function destroy(Tweet $tweet)
     {

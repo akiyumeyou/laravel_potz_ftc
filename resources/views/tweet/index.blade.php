@@ -4,7 +4,6 @@
             {{ __('Famiry Tail Chat') }}
         </h2>
     </x-slot>
-    <link rel="stylesheet" href="public/css/tweet.css">
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
