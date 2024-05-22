@@ -1,16 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Messages') }}
+            {{ __('Famiry Tail Chat') }}
         </h2>
     </x-slot>
+    <link rel="stylesheet" href="public/css/tweet.css">
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <h1>Famiry Tail Chat</h1>
                 <a href="{{ route('tweets.create') }}" class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-black font-bold py-2 px-4 rounded">
-                    新しくメッセージを作る
+                    メッセージを送る
                 </a>
                 <ul>
                     @foreach ($messages as $tweet)
