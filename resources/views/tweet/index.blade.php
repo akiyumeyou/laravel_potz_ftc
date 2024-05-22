@@ -8,7 +8,10 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <h1>Messages</h1>
+                <h1>Famiry Tail Chat</h1>
+                <a href="{{ route('tweets.create') }}" class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-black font-bold py-2 px-4 rounded">
+                    新しくメッセージを作る
+                </a>
                 <ul>
                     @foreach ($messages as $tweet)
                         <li class="mb-4">
@@ -49,9 +52,7 @@
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ route('tweets.create') }}" class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-black font-bold py-2 px-4 rounded">
-                    Create New Message
-                </a>
+
             </div>
         </div>
     </div>

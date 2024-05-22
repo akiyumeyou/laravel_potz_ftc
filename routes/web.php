@@ -19,6 +19,15 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+use App\Http\Controllers\GoogleLoginController;
+
+Route::get('/auth/google', [GoogleLoginController::class, 'redirectToGoogle'])
+    ->name('login.google');
+
+Route::get('/auth/google/callback', [GoogleLoginController::class, 'handleGoogleCallback'])
+    ->name('login.google.callback');
+
+
 
 Route::resource('tweets', TweetController::class);
 
