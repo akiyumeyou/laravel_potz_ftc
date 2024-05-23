@@ -11,11 +11,34 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
         <!-- Styles -->
-        <?php
-    echo '<style>
-        tailwindcss v3.4.1 | MIT License | https://tailwindcss.com 
-    </style>';
-    ?>
+        @if (Route::has('login'))
+        <nav class="-mx-3 flex flex-1 justify-end">
+            @auth
+                <a
+                    href="{{ url('/dashboard') }}"
+                    class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                >
+                    最初のページ
+                </a>
+            @else
+                <a
+                    href="{{ route('login') }}"
+                    class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                >
+                    ログイン
+                </a>
+
+                @if (Route::has('register'))
+                    <a
+                        href="{{ route('register') }}"
+                        class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                    >
+                        登録
+                    </a>
+                @endif
+            @endauth
+        </nav>
+    @endif
     </head>
     <div class="image-container">
     <img src="img/mainbg.png" alt="">

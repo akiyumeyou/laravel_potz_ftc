@@ -38,13 +38,13 @@
                             <div class="mt-2">
                                 @if(Auth::check() && Auth::id() == $tweet->user_id)
                                     <a href="{{ route('tweets.edit', $tweet->id) }}" class="bg-yellow-500 hover:bg-yellow-700 text-black font-bold py-2 px-4 rounded">
-                                        Edit
+                                        編集
                                     </a>
                                     <form action="{{ route('tweets.destroy', $tweet->id) }}" method="POST" class="inline-block">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="bg-red-500 hover:bg-red-700 text-black font-bold py-2 px-4 rounded">
-                                            Delete
+                                            削除
                                         </button>
                                     </form>
                                 @endif

@@ -15,8 +15,9 @@
                     <textarea name="content" id="content" class="form-textarea mt-1 block w-full"></textarea>
 
                     <button type="button" id="start-record-btn" class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-black font-bold py-2 px-4 rounded">
-                        🎤 Start Recording
+                        🎤 音声入力
                     </button>
+                    <br>
 
                     <label for="image">Image</label>
                     <input type="file" name="image" id="image" class="form-input mt-1 block w-full">
@@ -24,7 +25,7 @@
                     <label for="audio">Audio</label>
                     <input type="file" name="audio" id="audio" class="form-input mt-1 block w-full">
 
-                    <button type="submit" class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-black font-bold py-2 px-4 rounded">
+                    <button type="submit" class="mt-4 inline-block bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
                         送信
                     </button> 
                 </form>
@@ -55,68 +56,58 @@
             });
 
             async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
 
-    mediaRecorder.ondataavailable = event => {
-        audioChunks.push(event.data);
-    };
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
 
-    async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    audioChunks = [];
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'audio.mp3');
 
-    mediaRecorder.ondataavailable = event => {
-        audioChunks.push(event.data);
-    };
+                    console.log('Sending request to:', transcribeRoute);
+                    console.log('FormData:', formData.get('audio'));
 
-    mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-        audioChunks = [];
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'audio.mp3');
+                    try {
+                        const response = await fetch(transcribeRoute, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        });
 
-        console.log('Sending request to:', transcribeRoute);
-        console.log('FormData:', formData.get('audio'));
+                        const text = await response.text();
+                        console.log('Response text:', text);
 
-        try {
-            const response = await fetch(transcribeRoute, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: formData
-            });
+                        // JSONパースを試みる前にHTMLエラーページをチェック
+                        if (text.startsWith('<!DOCTYPE html>')) {
+                            throw new Error('Received HTML response instead of JSON');
+                        }
 
-            const text = await response.text();
-            console.log('Response text:', text);
+                        const data = JSON.parse(text);
+                        console.log('Parsed response:', data);
 
-            // JSONパースを試みる前にHTMLエラーページをチェック
-            if (text.startsWith('<!DOCTYPE html>')) {
-                throw new Error('Received HTML response instead of JSON');
+                        if (data.transcription) {
+                            contentField.value = data.transcription;
+                            feedback.textContent = 'Transcription successful';
+                        } else {
+                            feedback.textContent = data.error ? 'Transcription failed: ' + data.error : 'Transcription failed';
+                        }
+                    } catch (error) {
+                        feedback.textContent = 'Transcription request failed: ' + error.message;
+                        console.error('Transcription request failed:', error);
+                    }
+                };
+
+                mediaRecorder.start();
+                recordButton.textContent = '⏹ Stop Recording';
+                feedback.textContent = 'Recording...';
             }
-
-            const data = JSON.parse(text);
-            console.log('Parsed response:', data);
-
-            if (data.transcription) {
-                contentField.value = data.transcription;
-                feedback.textContent = 'Transcription successful';
-            } else {
-                feedback.textContent = data.error ? 'Transcription failed: ' + data.error : 'Transcription failed';
-            }
-        } catch (error) {
-            feedback.textContent = 'Transcription request failed: ' + error.message;
-            console.error('Transcription request failed:', error);
-        }
-    };
-
-    mediaRecorder.start();
-    recordButton.textContent = '⏹ Stop Recording';
-    feedback.textContent = 'Recording...';
-}
-
-
 
             function stopRecording() {
                 mediaRecorder.stop();
@@ -125,3 +116,4 @@
         });
     </script>
 </x-app-layout>
+
