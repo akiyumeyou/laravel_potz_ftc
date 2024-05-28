@@ -76,6 +76,7 @@
                         <span>{{ $senryu->user_name }}</span>
                     @endif
                     <span class="iine-btn">{{ $senryu->iine }} <i class="fa fa-thumbs-up"></i></span>
+                    <a href="storage/app/public/images/iine.png"></a>
                 </div>
             </div>
         @endforeach

@@ -4,6 +4,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TweetController;
 use App\Http\Controllers\AudioController;
+use App\Http\Controllers\ChatController;
+
 use App\Http\Controllers\SenryuController;
 
 
@@ -34,11 +36,21 @@ Route::get('/auth/google/callback', [GoogleLoginController::class, 'handleGoogle
 
 Route::resource('tweets', TweetController::class);
 
+Route::post('/transcribe', [TweetController::class, 'transcribe'])->name('transcribe');
+
+
 Route::middleware(['auth'])->group(function () {
     Route::resource('tweets', TweetController::class);
 });
 
-Route::post('/transcribe', [TweetController::class, 'transcribe'])->name('transcribe');
 
+Route::get('/chat', function () {
+    return view('chat.index');
+})->name('chat.index');
+
+Route::get('/conversation-history', [ChatController::class, 'getConversationHistory']);
+
+
+Route::post('/chat', [ChatController::class, 'handle'])->name('chat');
 
 Route::resource('senryus', SenryuController::class);
