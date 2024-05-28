@@ -9,6 +9,8 @@ export default defineConfig({
             input: [
                 'resources/js/app.js',
                 'resources/js/chat.js',
+                'resources/js/tweet.js',
+                'resources/js/stamp.js',
                 'resources/css/app.css'
             ],
             refresh: true,

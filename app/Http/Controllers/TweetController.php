@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tweet;
+use App\Models\Stamp; // 追加
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,8 @@ class TweetController extends Controller
     public function index()
     {
         $messages = Tweet::all();
-        return view('tweet.index', compact('messages'));
+        $images = Stamp::all(); // ここに画像データを取得する処理を追加
+        return view('tweet.index', compact('messages', 'images'));
     }
 
     public function create()
@@ -49,6 +51,13 @@ class TweetController extends Controller
 
         return redirect()->route('tweets.index')->with('success', 'Tweet created successfully.');
     }
+
+    public function loadMessages()
+    {
+        $messages = Tweet::all();
+        return response()->json($messages);
+    }
+
 
     public function transcribe(Request $request)
     {
@@ -122,7 +131,6 @@ class TweetController extends Controller
         }
     }
     
-
     public function show(Tweet $tweet)
     {
         return view('tweet.show', compact('tweet'));

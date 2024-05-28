@@ -9,7 +9,6 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <h1>Famiry Tail Chat</h1>
-
                 <ul>
                     @foreach ($messages as $tweet)
                         <li class="mb-4">
@@ -44,6 +43,33 @@
                     @endforeach
                 </ul>
 
+                <div id="phone">
+                    <div id="screen">
+                        <div id="output" class="scroll_bar overflow-y-auto overflow-x-hidden h-96"></div>
+                        <form method="POST" action="{{ route('tweets.store') }}" enctype="multipart/form-data">
+                            @csrf
+                            <div class="send_wrap">
+                                <fieldset>
+                                    <label>投稿：{{ Auth::user()->name }}</label><br>
+                                    <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
+                                    <input type="hidden" name="user_name" value="{{ Auth::user()->name }}">
+                                    <input type="text" name="content" class="chat_input">
+                                    <input type="hidden" name="message_type" value="text">
+                                    <button id="send" type="submit"><img src="{{ asset('img/btn_send.png') }}" alt="送信"></button>
+                                    <input type="file" name="image" accept="image/*">
+                                </fieldset>
+                            </div>
+                            <div id="image-gallery" class="gallery">
+                                @foreach ($images as $image)
+                                    <img src="{{ asset($image->image) }}" alt="Image" class="stamp-image">
+                                @endforeach
+                            </div>
+                        </form>
+                    </div>
+
+                    <button id="stampbt" onclick="location.href='{{ route('stamps.create') }}'">スタンプ作成</button>
+                    <button id="stamsend">スタンプ送る</button>
+                </div>
             </div>
         </div>
     </div>
@@ -51,3 +77,5 @@
         メッセージを送る
     </a>
 </x-app-layout>
+
+<script src="{{ asset('js/tweet.js') }}"></script>
