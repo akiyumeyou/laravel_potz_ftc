@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TweetController;
 use App\Http\Controllers\AudioController;
+use App\Http\Controllers\SenryuController;
 
 
 Route::get('/', function () {
@@ -39,3 +40,5 @@ Route::middleware(['auth'])->group(function () {
 
 Route::post('/transcribe', [TweetController::class, 'transcribe'])->name('transcribe');
 
+
+Route::resource('senryus', SenryuController::class);
