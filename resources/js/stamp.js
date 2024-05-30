@@ -85,4 +85,42 @@ document.addEventListener('DOMContentLoaded', function() {
         const yPos = calculateYPosition(canvas, position, size);
         ctx.fillText(text, canvas.width / 2, yPos);
     });
+
+    // フォーム送信時にキャンバスの内容を画像として送信
+    document.getElementById('stamp-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!img) {
+            alert("先に画像を選択してください。");
+            return;
+        }
+
+        const dataURL = canvas.toDataURL('image/png');
+        const blobBin = atob(dataURL.split(',')[1]);
+        const array = [];
+        for (let i = 0; i < blobBin.length; i++) {
+            array.push(blobBin.charCodeAt(i));
+        }
+        const file = new Blob([new Uint8Array(array)], {type: 'image/png'});
+        const formData = new FormData(this);
+        formData.append('image', file, 'stamp.png');
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('スタンプが作成されました。');
+                window.location.reload();
+            } else {
+                alert('スタンプの作成に失敗しました。');
+            }
+        })
+        .catch(error => {
+            console.error('エラーが発生しました:', error);
+            alert('スタンプの作成に失敗しました。');
+        });
+    });
 });

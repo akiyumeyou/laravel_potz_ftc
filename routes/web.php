@@ -47,9 +47,13 @@ Route::middleware(['auth'])->group(function () {
 
 Route::get('/tweets', [TweetController::class, 'index'])->name('tweets.index');
 
-// スタンプ作成用のルート
-Route::get('/stamps/create', [StampController::class, 'create'])->name('stamps.create');
-Route::post('/stamps', [StampController::class, 'store'])->name('stamps.store');
+Route::resource('stamps', StampController::class);
+
+// スタンプ作成ページのルート
+Route::get('/stamps/create', [StampController::class, 'create'])->name('stamp.create');
+
+// スタンプ保存のルート
+Route::post('/stamps', [StampController::class, 'store'])->name('stamp.store');
 
 
 

@@ -14,7 +14,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('stamps.store') }}" enctype="multipart/form-data">
+                <form action="{{ route('stamp.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div>
                         <label for="text-overlay" class="block text-sm font-medium text-gray-700">テキスト:</label>
@@ -61,6 +61,6 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+    @vite('resources/js/stamp.js')
 
-<script src="{{ asset('js/stamp.js') }}"></script>
+</x-app-layout>

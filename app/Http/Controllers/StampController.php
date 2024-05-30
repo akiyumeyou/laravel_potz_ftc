@@ -5,16 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Stamp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
 
 class StampController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        // 必要に応じて実装
     }
 
     public function create()
@@ -28,46 +26,46 @@ class StampController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $imageName = time().'.'.$request->image->extension();  
-        $request->image->move(public_path('stamps'), $imageName);
+        // 画像を保存するディレクトリを定義
+        $uploadDir = 'public/stamps';
+        if (!Storage::exists($uploadDir)) {
+            Storage::makeDirectory($uploadDir);
+        }
 
+        // 画像を保存
+        $imageName = time() . '.png';
+        $imagePath = $uploadDir . '/' . $imageName;
+
+        // $image = Image::make($request->file('image'))->resize(320, 440)->encode('png');
+        Storage::put($imagePath, (string) $imageName);
+
+        // データベースに保存
         $stamp = new Stamp();
         $stamp->user_id = Auth::id();
-        $stamp->image = 'stamps/' . $imageName;
+        $stamp->image = 'storage/stamps/' . $imageName; // 公開ディレクトリへのパス
         $stamp->save();
 
-        return redirect()->route('stamp.create')->with('success', 'スタンプが作成されました。');
+        return response()->json(['success' => true]);
     }
 
-    /**
-     * Display the specified resource.
-     */
+
     public function show(Stamp $stamp)
     {
-        //
+        // 必要に応じて実装
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Stamp $stamp)
     {
-        //
+        // 必要に応じて実装
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Stamp $stamp)
     {
-        //
+        // 必要に応じて実装
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Stamp $stamp)
     {
-        //
+        // 必要に応じて実装
     }
 }
