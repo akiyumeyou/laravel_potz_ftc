@@ -89,15 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // フォーム送信時にキャンバスの内容を画像として送信
     document.getElementById('stamp-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         if (!img) {
             alert("先に画像を選択してください。");
             return;
         }
 
         const dataURL = canvas.toDataURL('image/png');
+        console.log(dataURL);
         const blobBin = atob(dataURL.split(',')[1]);
+        console.log(blobBin);
         const array = [];
+        console.log(array);
         for (let i = 0; i < blobBin.length; i++) {
             array.push(blobBin.charCodeAt(i));
         }
