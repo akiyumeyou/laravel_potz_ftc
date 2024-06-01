@@ -33,7 +33,8 @@ Route::get('/auth/google', [GoogleLoginController::class, 'redirectToGoogle'])
 Route::get('/auth/google/callback', [GoogleLoginController::class, 'handleGoogleCallback'])
     ->name('login.google.callback');
 
-Route::post('/stamps/store', [StampController::class, 'store'])->name('stamp.store');
+Route::post('/stamp/store', [StampController::class, 'store'])->name('stamp.store');
+
 Route::get('/stamps/create', [StampController::class, 'create'])->name('stamp.create');
 // routes/web.php
 
@@ -49,12 +50,7 @@ Route::resource('tweets', TweetController::class);
 });
 Route::post('/tweets', [TweetController::class, 'store'])->name('tweets.store');
 Route::get('/tweets', [TweetController::class, 'index'])->name('tweets.index');
-
-// Route::resource('stamp', StampController::class);
-
-
-
-
+Route::get('/tweets/messages', [TweetController::class, 'getMessages'])->name('tweets.messages');
 
 Route::get('/chat', function () {
     return view('chat.index');

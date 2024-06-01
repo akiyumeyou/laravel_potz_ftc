@@ -11,19 +11,22 @@ function calculateYPosition(canvas, position, size) {
             return 20 + parseInt(size);
     }
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     const canvas = document.getElementById('preview-canvas');
     const ctx = canvas.getContext('2d');
     const imageInput = document.getElementById('image');
     const dropArea = document.getElementById('drop-area');
     const fileNameContainer = document.getElementById('file-name');
+    const generatedImage = document.getElementById('generated-image');
+    const fileNamePreview = document.getElementById('file-name-preview');
     let img = null;
+    let originalFileName = '';
 
     // 画像ファイルが選択された時の処理
     imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file && file.type.startsWith('image/')) {
+            originalFileName = file.name.split('.').slice(0, -1).join('.');
             const reader = new FileReader();
             reader.onload = function(event) {
                 img = new Image();
@@ -84,6 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const yPos = calculateYPosition(canvas, position, size);
         ctx.fillText(text, canvas.width / 2, yPos);
+
+        // 生成された画像をプレビュー表示
+        const dataURL = canvas.toDataURL('image/png');
+        generatedImage.src = dataURL;
+        generatedImage.style.display = 'block';
+        fileNamePreview.textContent = `生成されたファイル名: ${originalFileName}.png`;
     });
 
     // フォーム送信時にキャンバスの内容を画像として送信
@@ -96,17 +105,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const dataURL = canvas.toDataURL('image/png');
-        console.log(dataURL);
-        const blobBin = atob(dataURL.split(',')[1]);
-        console.log(blobBin);
+        const binary = atob(dataURL.split(',')[1]);
         const array = [];
-        console.log(array);
-        for (let i = 0; i < blobBin.length; i++) {
-            array.push(blobBin.charCodeAt(i));
+        for (let i = 0; i < binary.length; i++) {
+            array.push(binary.charCodeAt(i));
         }
         const file = new Blob([new Uint8Array(array)], {type: 'image/png'});
         const formData = new FormData(this);
-        formData.append('image', file, 'stamp.png');
+        formData.append('image', file, `${originalFileName}.png`);
+
+        // デバッグ用にFormDataの内容をログに出力
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
 
         fetch(this.action, {
             method: 'POST',
@@ -115,18 +126,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 alert('スタンプが作成されました。');
                 window.location.reload();
             } else {
-                alert('スタンプの作成に失敗しました。');
+                alert('スタンプの作成に失敗しました。 ' + data.message);
             }
         })
         .catch(error => {
             console.error('エラーが発生しました:', error);
-            alert('スタンプの作成に失敗しました。');
+            alert('スタンプの作成に失敗しました。 ' + error.message);
         });
     });
 });

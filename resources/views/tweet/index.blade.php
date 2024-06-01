@@ -4,6 +4,21 @@
             {{ __('Famiry Tail Chat') }}
         </h2>
     </x-slot>
+    <style>
+        .stamp-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+
+        .stamp-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+    </style>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -15,7 +30,7 @@
                             <strong>{{ $tweet->user_name }}:</strong>
                             @if ($tweet->message_type == 'image')
                                 <div>
-                                    <img src="{{ $tweet->content }}" alt="Image" class="max-w-full h-auto">
+                                    <img src="{{ asset($tweet->content) }}" alt="Image" class="max-w-full h-auto">
                                 </div>
                             @elseif ($tweet->message_type == 'video')
                                 <div>
@@ -27,6 +42,10 @@
                             @elseif ($tweet->message_type == 'link')
                                 <div>
                                     <a href="{{ $tweet->content }}" target="_blank" class="text-blue-500 hover:text-blue-700">{{ $tweet->content }}</a>
+                                </div>
+                            @elseif ($tweet->message_type == 'stamp')
+                                <div>
+                                    <img src="{{ asset($tweet->content) }}" alt="Stamp" class="max-w-full h-auto">
                                 </div>
                             @else
                                 <p>{{ $tweet->content }}</p>
@@ -46,21 +65,23 @@
                 <div id="phone">
                     <div id="screen">
                         <div id="output" class="scroll_bar overflow-y-auto overflow-x-hidden h-96"></div>
-                        <form method="POST" action="{{ route('tweets.store') }}" enctype="multipart/form-data">
+                        <form id="tweet-form" method="POST" action="{{ route('tweets.store') }}" enctype="multipart/form-data">
                             @csrf
                             <div class="send_wrap">
                                 <fieldset>
                                     <label>投稿：{{ Auth::user()->name }}</label><br>
                                     <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
                                     <input type="hidden" name="user_name" value="{{ Auth::user()->name }}">
-                                    <input type="text" name="content" class="chat_input">
-                                    <input type="hidden" name="message_type" value="text">
+                                    <input type="text" name="content" id="content" class="chat_input">
+                                    <input type="hidden" name="message_type" id="message_type" value="text">
                                     <button id="send" type="submit"><img src="{{ asset('img/btn_send.png') }}" width="50" height="50"></button>
                                     <input type="file" name="image" accept="image/*">
                                 </fieldset>
                             </div>
-                            <div id="image-gallery" class="gallery">
-                                @foreach ($images as $image) <img src="{{ asset('/stamps' . $image->image) }}" alt="Image" class="stamp-image"> @endforeach
+                            <div id="stamp-gallery" class="stamp-gallery mt-4">
+                                @foreach ($images as $image)
+                                    <img src="{{ asset('' . $image->image) }}" alt="Image" class="stamp-image" onclick="selectStamp('{{ asset('' . $image->image) }}')">
+                                @endforeach
                             </div>
                         </form>
                     </div>
@@ -71,8 +92,13 @@
                         document.getElementById('stampbt').addEventListener('click', function() {
                             window.location.href = '{{ route('stamp.create') }}';
                         });
-                    </script>
 
+                        function selectStamp(stampPath) {
+                            document.getElementById('content').value = stampPath;
+                            document.getElementById('message_type').value = 'stamp';
+                            document.getElementById('tweet-form').submit();
+                        }
+                    </script>
 
                     <button id="stamsend">スタンプ送る</button>
                 </div>
@@ -84,5 +110,5 @@
     </a>
 </x-app-layout>
 
-<!-- <script src="{{ asset('js/tweet.js') }}"></script> -->
 @vite('resources/js/tweet.js')
+

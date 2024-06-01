@@ -6,6 +6,8 @@ use App\Models\Stamp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+
 
 use Intervention\Image\ImageManagerStatic as Image;
 
@@ -23,24 +25,41 @@ class StampController extends Controller
 
     public function store(Request $request)
     {
-        // バリデーション
-        $request->validate([
-            'image' => 'required|image|mimes:png|max:2048', // 画像は必須、PNG形式、最大2MB
-        ]);
+        try {
+            Log::info('Store method called');
 
-        // 画像ファイルを保存
-        $path = $request->file('image')->store('public/stamps');
+            // バリデーション
+            $request->validate([
+                'image' => 'required|image|mimes:png|max:2048', // 画像は必須、PNG形式、最大2MB
+            ]);
 
-        // ファイルパスを取得
-        $filePath = Storage::url($path);
+            Log::info('Validation passed');
 
-        // データベースに保存
-        $stamp = new Stamp();
-        $stamp->user_id = auth()->id(); // 認証されたユーザーのIDを取得
-        $stamp->image = $filePath;
-        $stamp->save();
+            // ファイル情報のログ
+            $file = $request->file('image');
+            Log::info('File details: ' . $file->getMimeType() . ', ' . $file->getClientOriginalExtension());
 
-        return response()->json(['success' => true, 'message' => 'スタンプが作成されました。']);
+            // 画像ファイルを保存
+            $originalName = $file->getClientOriginalName();
+            $path = $file->storeAs('public/stamps', $originalName);
+            Log::info('Image stored at: ' . $path);
+
+            // ファイルパスを取得
+            $filePath = Storage::url($path);
+            Log::info('File URL: ' . $filePath);
+
+            // データベースに保存
+            $stamp = new Stamp();
+            $stamp->user_id = auth()->id(); // 認証されたユーザーのIDを取得
+            $stamp->image = $filePath;
+            $stamp->save();
+
+            return response()->json(['success' => true, 'message' => 'スタンプが作成されました。']);
+        } catch (\Exception $e) {
+            Log::error('エラーが発生しました: ' . $e->getMessage());
+            // エラーメッセージをJSON形式で返す
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
 

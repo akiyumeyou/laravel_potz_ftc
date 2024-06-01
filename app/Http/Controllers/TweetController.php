@@ -15,13 +15,21 @@ class TweetController extends Controller
     public function index()
     {
         $messages = Tweet::all();
-        $images = Stamp::all(); // ここに画像データを取得する処理を追加
+        $images = Stamp::all(); // スタンプのデータを取得
+
         return view('tweet.index', compact('messages', 'images'));
     }
 
     public function create()
     {
         return view('tweet.create');
+    }
+
+
+    public function getMessages()
+    {
+        $messages = Tweet::all();
+        return response()->json($messages);
     }
 
     public function store(Request $request)
@@ -42,6 +50,10 @@ class TweetController extends Controller
             $imagePath = $request->file('image')->store('images', 'public');
             $tweet->content = '/storage/' . $imagePath;
             $tweet->message_type = 'image';
+        } elseif ($request->input('message_type') === 'stamp') {
+            $stampPath = $request->input('content'); // スタンプのパスはcontentフィールドに含まれると仮定
+            $tweet->content = $stampPath;
+            $tweet->message_type = 'stamp';
         } else {
             $tweet->content = $request->input('content');
             $tweet->message_type = 'text';
@@ -51,6 +63,9 @@ class TweetController extends Controller
 
         return redirect()->route('tweets.index')->with('success', 'Tweet created successfully.');
     }
+
+
+
 
     public function loadMessages()
     {
@@ -65,28 +80,28 @@ class TweetController extends Controller
             $request->validate([
                 'audio' => 'required|mimes:mp3,mp4,mpeg,mpga,m4a,wav,webm|max:25000', // 最大25MB
             ]);
-    
+
             $audio = $request->file('audio');
             $client = new Client();
             $apiKey = env('OPENAI_API_KEY');
-    
+
             if (!$apiKey) {
                 throw new \Exception('API key is missing.');
             }
-    
+
             $audioPath = $audio->getPathname();
             $audioName = $audio->getClientOriginalName();
-    
+
             Log::info('Audio path: ' . $audioPath);
             Log::info('Audio name: ' . $audioName);
             Log::info('API Key: ' . $apiKey);
-    
+
             // ファイルの内容を取得して変数に格納
             $fileContents = file_get_contents($audioPath);
             if ($fileContents === false) {
                 throw new \Exception('Failed to read audio file');
             }
-    
+
             $response = $client->post('https://api.openai.com/v1/audio/transcriptions', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $apiKey,
@@ -103,26 +118,26 @@ class TweetController extends Controller
                     ],
                 ],
             ]);
-    
+
             $statusCode = $response->getStatusCode();
             $responseBody = $response->getBody()->getContents();
-    
+
             Log::info('Response status: ' . $statusCode);
             Log::info('Response body: ' . $responseBody);
-    
+
             if ($statusCode !== 200) {
                 throw new \Exception('API request failed with status code ' . $statusCode);
             }
-    
+
             $data = json_decode($responseBody, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception('JSON decode error: ' . json_last_error_msg());
             }
-    
+
             return response()->json([
                 'transcription' => $data['text'] ?? null,
             ]);
-    
+
         } catch (\Exception $e) {
             Log::error('Transcription error: ' . $e->getMessage());
             return response()->json([
@@ -130,7 +145,7 @@ class TweetController extends Controller
             ], 500);
         }
     }
-    
+
     public function show(Tweet $tweet)
     {
         return view('tweet.show', compact('tweet'));

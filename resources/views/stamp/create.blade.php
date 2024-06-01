@@ -14,7 +14,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('stamp.store') }}" method="POST" enctype="multipart/form-data">
+                <form id="stamp-form" action="{{ route('stamp.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div>
                         <label for="text-overlay" class="block text-sm font-medium text-gray-700">テキスト:</label>
@@ -49,6 +49,9 @@
                             <canvas id="preview-canvas" width="320" height="445"></canvas>
                         </div>
 
+                        <img id="generated-image" class="mt-4" style="display: none;" />
+                        <div id="file-name-preview" class="mt-2"></div>
+
                         <label for="image" class="block text-sm font-medium text-gray-700 mt-4">画像:</label>
                         <div id="drop-area" class="border-dashed border-2 border-gray-300 py-4 text-center">
                             <p>画像をドラッグ＆ドロップまたは<span class="file-input-label cursor-pointer text-blue-500">クリック</span>して選択</p>
@@ -56,11 +59,11 @@
                             <div id="file-name" class="mt-2"></div>
                         </div>
                     </div>
-                    <input type="submit" id="stamp-form" value="保存" class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    <input type="submit" value="保存" class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                 </form>
             </div>
         </div>
     </div>
     @vite('resources/js/stamp.js')
-
 </x-app-layout>
+

@@ -1,10 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // スタンプギャラリーの表示切り替え
     document.getElementById('stamsend').addEventListener('click', function() {
         document.querySelector('.gallery').classList.toggle('show');
     });
 
+    // メッセージを読み込む関数の呼び出し
     loadMessages();
 
+    // スタンプ画像をクリックしたときの処理
     document.querySelectorAll('.stamp-image').forEach(function(image) {
         image.addEventListener('click', function() {
             if (confirm('このスタンプを送信しますか？')) {
@@ -18,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // メッセージ送信ボタンをクリックしたときの処理
     document.getElementById('send').addEventListener('click', function(e) {
         e.preventDefault();
         var content = document.querySelector('input[name="content"]').value;
@@ -34,7 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// メッセージを送信する関数
 function sendMessage(data) {
+    const sendButton = document.getElementById('send');
+    sendButton.disabled = true; // ボタンを無効化
+
     fetch('/tweets', {
         method: 'POST',
         headers: {
@@ -54,20 +62,29 @@ function sendMessage(data) {
     })
     .catch(error => {
         console.error('エラーが発生しました:', error);
+    })
+    .finally(() => {
+        sendButton.disabled = false; // ボタンを有効化
     });
 }
 
+// メッセージを読み込む関数
 function loadMessages() {
     fetch('/tweets/messages')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         const output = document.getElementById('output');
         output.innerHTML = '';
 
         data.forEach(message => {
-            var date = new Date(message.timestamp);
+            var date = new Date(message.created_at);
             var formattedTime = (date.getMonth() + 1) + '/' + date.getDate() + ' ' +
-                                date.getHours() + ':' + 
+                                date.getHours() + ':' +
                                 (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
 
             var alignmentClass = (message.user_id == currentUserId) ? 'right' : 'left';
@@ -78,13 +95,13 @@ function loadMessages() {
             var messageHtml;
 
             if (message.message_type === 'stamp') {
-                messageHtml = '<div class="message-wrapper ' + alignmentClass + '">' + 
+                messageHtml = '<div class="message-wrapper ' + alignmentClass + '">' +
                               '<div class="user-name">♡: ' + message.user_name + '</div>' +
                               '<img src="' + message.content + '" style="max-width: 380px;">' +
                               '<div class="message-time ' + timeAlignmentClass + '">' + formattedTime + readText + '</div>' +
                               '</div>';
             } else {
-                messageHtml = '<div class="message-wrapper ' + alignmentClass + '">' + 
+                messageHtml = '<div class="message-wrapper ' + alignmentClass + '">' +
                               '<div class="user-name">♡: ' + message.user_name + '</div>' +
                               '<div class="message-content ' + userClass + '">' + message.content + '</div>' +
                               '<div class="message-time ' + timeAlignmentClass + '">' + formattedTime + readText + '</div>' +
