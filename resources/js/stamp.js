@@ -110,7 +110,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch(this.action, {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
         })
         .then(response => response.json())
         .then(data => {

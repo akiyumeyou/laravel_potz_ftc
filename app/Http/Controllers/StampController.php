@@ -23,30 +23,24 @@ class StampController extends Controller
 
     public function store(Request $request)
     {
+        // バリデーション
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'required|image|mimes:png|max:2048', // 画像は必須、PNG形式、最大2MB
         ]);
 
-        // 画像を保存するディレクトリを定義
-        $uploadDir = 'public/stamps';
-        if (!Storage::exists($uploadDir)) {
-            Storage::makeDirectory($uploadDir);
-        }
+        // 画像ファイルを保存
+        $path = $request->file('image')->store('public/stamps');
 
-        // 画像を保存
-        $imageName = time() . '.png';
-        $imagePath = $uploadDir . '/' . $imageName;
-
-        // $image = Image::make($request->file('image'))->resize(320, 440)->encode('png');
-        Storage::put($imagePath, (string) $imageName);
+        // ファイルパスを取得
+        $filePath = Storage::url($path);
 
         // データベースに保存
         $stamp = new Stamp();
-        $stamp->user_id = Auth::id();
-        $stamp->image = 'storage/stamps/' . $imageName; // 公開ディレクトリへのパス
+        $stamp->user_id = auth()->id(); // 認証されたユーザーのIDを取得
+        $stamp->image = $filePath;
         $stamp->save();
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'message' => 'スタンプが作成されました。']);
     }
 
 

@@ -55,19 +55,25 @@
                                     <input type="hidden" name="user_name" value="{{ Auth::user()->name }}">
                                     <input type="text" name="content" class="chat_input">
                                     <input type="hidden" name="message_type" value="text">
-                                    <button id="send" type="submit"><img src="{{ asset('storage/img/btn_send.png') }}" width="50" height="50"></button>
+                                    <button id="send" type="submit"><img src="{{ asset('img/btn_send.png') }}" width="50" height="50"></button>
                                     <input type="file" name="image" accept="image/*">
                                 </fieldset>
                             </div>
                             <div id="image-gallery" class="gallery">
-                                @foreach ($images as $image)
-                                    <img src="{{ asset($image->image) }}" alt="Image" class="stamp-image">
-                                @endforeach
+                                @foreach ($images as $image) <img src="{{ asset('/stamps' . $image->image) }}" alt="Image" class="stamp-image"> @endforeach
                             </div>
                         </form>
                     </div>
 
-                    <button id="stampbt" onclick="location.href='{{ route('stamp.create') }}'">スタンプ作成</button>
+                    <button id="stampbt">スタンプ作成</button>
+
+                    <script>
+                        document.getElementById('stampbt').addEventListener('click', function() {
+                            window.location.href = '{{ route('stamp.create') }}';
+                        });
+                    </script>
+
+
                     <button id="stamsend">スタンプ送る</button>
                 </div>
             </div>

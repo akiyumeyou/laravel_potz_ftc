@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TweetController;
 use App\Http\Controllers\AudioController;
 use App\Http\Controllers\StampController;
-
 use App\Http\Controllers\ChatController;
 
 use App\Http\Controllers\SenryuController;
@@ -34,26 +33,25 @@ Route::get('/auth/google', [GoogleLoginController::class, 'redirectToGoogle'])
 Route::get('/auth/google/callback', [GoogleLoginController::class, 'handleGoogleCallback'])
     ->name('login.google.callback');
 
+Route::post('/stamps/store', [StampController::class, 'store'])->name('stamp.store');
+Route::get('/stamps/create', [StampController::class, 'create'])->name('stamp.create');
+// routes/web.php
+
+
+Route::post('/upload-stamp', [StampController::class, 'store'])->name('stamp.store');
 
 
 Route::resource('tweets', TweetController::class);
 
 Route::post('/transcribe', [TweetController::class, 'transcribe'])->name('transcribe');
-
-
 Route::middleware(['auth'])->group(function () {
-    Route::resource('tweets', TweetController::class);
+Route::resource('tweets', TweetController::class);
 });
-
+Route::post('/tweets', [TweetController::class, 'store'])->name('tweets.store');
 Route::get('/tweets', [TweetController::class, 'index'])->name('tweets.index');
 
-Route::resource('stamps', StampController::class);
+// Route::resource('stamp', StampController::class);
 
-// スタンプ作成ページのルート
-Route::get('/stamps/create', [StampController::class, 'create'])->name('stamp.create');
-
-// スタンプ保存のルート
-Route::post('/stamps', [StampController::class, 'store'])->name('stamp.store');
 
 
 
