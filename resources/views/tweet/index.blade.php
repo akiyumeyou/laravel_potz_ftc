@@ -18,15 +18,31 @@
             object-fit: cover;
             cursor: pointer;
         }
+
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .chat-message.user {
+            text-align: right;
+            background-color: #f0f0f0;
+        }
+
+        .chat-message.other {
+            text-align: left;
+            background-color: #e0e0e0;
+        }
     </style>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <h1>Famiry Tail Chat</h1>
-                <ul>
+                <ul id="message-list">
                     @foreach ($messages as $tweet)
-                        <li class="mb-4">
+                        <li class="mb-4 chat-message {{ Auth::id() == $tweet->user_id ? 'user' : 'other' }}">
                             <strong>{{ $tweet->user_name }}:</strong>
                             @if ($tweet->message_type == 'image')
                                 <div>
@@ -74,41 +90,29 @@
                                     <input type="hidden" name="user_name" value="{{ Auth::user()->name }}">
                                     <input type="text" name="content" id="content" class="chat_input">
                                     <input type="hidden" name="message_type" id="message_type" value="text">
+                                    <input type="hidden" name="stamp" id="stamp">
                                     <button id="send" type="submit"><img src="{{ asset('img/btn_send.png') }}" width="50" height="50"></button>
-                                    <input type="file" name="image" accept="image/*">
+                                    <input type="file" name="image" accept="image/*" id="image">
                                 </fieldset>
                             </div>
-                            <div id="stamp-gallery" class="stamp-gallery mt-4">
-                                @foreach ($images as $image)
-                                    <img src="{{ asset('' . $image->image) }}" alt="Image" class="stamp-image" onclick="selectStamp('{{ asset('' . $image->image) }}')">
-                                @endforeach
-                            </div>
                         </form>
+                        <div id="stamp-gallery" class="stamp-gallery mt-4">
+                            @foreach ($images as $image)
+                                <img src="{{ asset($image->image) }}" alt="Image" class="stamp-image" onclick="selectStamp('{{ asset($image->image) }}')">
+                            @endforeach
+                        </div>
                     </div>
-
-                    <button id="stampbt">スタンプ作成</button>
-
-                    <script>
-                        document.getElementById('stampbt').addEventListener('click', function() {
-                            window.location.href = '{{ route('stamp.create') }}';
-                        });
-
-                        function selectStamp(stampPath) {
-                            document.getElementById('content').value = stampPath;
-                            document.getElementById('message_type').value = 'stamp';
-                            document.getElementById('tweet-form').submit();
-                        }
-                    </script>
-
-                    <button id="stamsend">スタンプ送る</button>
                 </div>
             </div>
         </div>
     </div>
-    <a href="{{ route('tweets.create') }}" class="mt-4 inline-block bg-blue-500 hover:bg-blue-700 text-black font-bold py-2 px-4 rounded">
-        メッセージを送る
-    </a>
+
+    <script>
+        function selectStamp(imageUrl) {
+            document.getElementById('content').value = imageUrl;
+            document.getElementById('message_type').value = 'stamp';
+            document.getElementById('stamp').value = imageUrl;
+            document.getElementById('tweet-form').submit();
+        }
+    </script>
 </x-app-layout>
-
-@vite('resources/js/tweet.js')
-

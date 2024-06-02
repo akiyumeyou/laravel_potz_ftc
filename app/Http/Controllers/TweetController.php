@@ -37,26 +37,27 @@ class TweetController extends Controller
         $request->validate([
             'content' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'audio' => 'nullable|mimes:mp3,mp4,mpeg,mpga,m4a,wav,webm|max:25000', // 最大25MB
+            'message_type' => 'required|string',
         ]);
 
         $tweet = new Tweet();
-        $tweet->user_id = auth()->id();
-        $tweet->user_name = auth()->user()->name;
-        $tweet->updated_at = now();
-        $tweet->created_at = now();
+        $tweet->user_id = Auth::id();
+        $tweet->user_name = Auth::user()->name;
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('images', 'public');
             $tweet->content = '/storage/' . $imagePath;
             $tweet->message_type = 'image';
         } elseif ($request->input('message_type') === 'stamp') {
-            $stampPath = $request->input('content'); // スタンプのパスはcontentフィールドに含まれると仮定
-            $tweet->content = $stampPath;
+            $tweet->content = $request->input('content');
             $tweet->message_type = 'stamp';
         } else {
             $tweet->content = $request->input('content');
             $tweet->message_type = 'text';
+        }
+
+        if (empty($tweet->content)) {
+            return redirect()->route('tweets.index')->with('error', 'Content cannot be null');
         }
 
         $tweet->save();
@@ -64,15 +65,11 @@ class TweetController extends Controller
         return redirect()->route('tweets.index')->with('success', 'Tweet created successfully.');
     }
 
-
-
-
     public function loadMessages()
     {
         $messages = Tweet::all();
         return response()->json($messages);
     }
-
 
     public function transcribe(Request $request)
     {
